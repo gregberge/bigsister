@@ -3,7 +3,6 @@ twitter = require 'twitter'
 kue = require 'kue'
 util = require 'util'
 jobs = kue.createQueue()
-_ = require 'underscore'
 db = new neo4j.GraphDatabase 'http://localhost:7474'
 kue.app.listen 3000
 redis = require 'redis'
