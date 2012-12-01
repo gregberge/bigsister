@@ -1,4 +1,4 @@
-<div class="navbar navbar-inverse navbar-fixed-top">
+<div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
       <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -9,10 +9,23 @@
       <a class="brand" href="#">BigSister</a>
       <div class="nav-collapse collapse">
         <ul class="nav">
-          <li data-name="home" class="active"><a href="#">Home</a></li>
-          <li data-name="about"><a href="#about">About</a></li>
+          <li data-page="home" class="active"><a href="#">Home</a></li>
+          <li data-page="about"><a href="#about">About</a></li>
+          <li data-page="contact"><a href="#contact">Contact</a></li>
         </ul>
       </div>
     </div>
   </div>
+  <header>
+    <div class="row">
+      <div class="span9 offset3">
+        <form class="search-form">
+          <div class="input-append">
+            <input type="text" name="search" placeholder="Search for any topic">
+            <img src="img/icon-search.svg" width="35" height="35">
+          </div>
+        </form>
+      </div>
+    </div>
+  </header>
 </div>

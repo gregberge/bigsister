@@ -12,6 +12,14 @@ function(Backbone){
       "about": {
         name: "about",
         view: "about"
+      },
+      "contact": {
+        name: "contact",
+        view: "contact"
+      },
+      "results": {
+        name: "results",
+        view: "results"
       }
     },
 

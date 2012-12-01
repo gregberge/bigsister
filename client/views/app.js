@@ -1,5 +1,5 @@
-define(["jquery", "lib/views/base", "views/elements/menu"],
-function($, BaseView, MenuView) {
+define(["jquery", "lib/views/base", "views/elements/menu", "router"],
+function($, BaseView, MenuView, router) {
   "use strict";
 
   var View = BaseView.extend({
@@ -9,6 +9,8 @@ function($, BaseView, MenuView) {
     initialize: function() {
       BaseView.prototype.initialize.call(this);
       this.menu = new MenuView();
+      
+      router.start();
     },
 
     render: function(data) {

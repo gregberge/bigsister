@@ -1,8 +1,6 @@
-define(["router", "views/app"],
-function(router, AppView) {
+define(["views/app"],
+function(AppView) {
   "use strict";
-  
-  router.start();
   
   window.app = new AppView();
   window.app.render();

@@ -1,4 +1,4 @@
-define(["lib/views/page", "text!templates/pages/about.html"],
+define(["lib/views/page", "text!templates/pages/contact.html"],
 function(PageView, template) {
   "use strict";
   
