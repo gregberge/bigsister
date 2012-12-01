@@ -11,8 +11,8 @@ function($, BaseView, MenuView) {
       this.menu = new MenuView();
     },
 
-    render: function() {
-      BaseView.prototype.render.call(this);
+    render: function(data) {
+      BaseView.prototype.render.call(this, data);
       this.assign(this.menu, "#menu");
     }
 
