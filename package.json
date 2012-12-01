@@ -1,0 +1,14 @@
+{
+  "name": "bigsister",
+  "version": "0.1.0",
+  "description": "Graph mentions",
+  "main": "./server",
+  "dependencies": {
+    "express": "*",
+    "consolidate": "*",
+    "hogan.js": "*"
+  },
+  "devDependencies": {
+    
+  }
+}
