@@ -6,7 +6,8 @@
   "dependencies": {
     "express": "*",
     "consolidate": "*",
-    "hogan.js": "*"
+    "hogan.js": "*",
+    "neo4j": "*"
   },
   "devDependencies": {
     
