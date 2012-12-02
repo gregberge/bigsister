@@ -1,6 +1,7 @@
-#bigsister
+#BigSister.io
 
-Graph mentions project for Angelhack 2012.
+Social graph analysis based on topics
+
 
 ## Installation
 
