@@ -14,6 +14,7 @@ jobs = kue.createQueue();
 db = new neo4j.GraphDatabase('http://localhost:7474');
 
 kue.app.listen(3000);
+var xml2json = require("xml2json");
 
 redis = require('redis');
 
@@ -34,12 +35,43 @@ twit = new Twitter({
 
 crawlInsights = function(text, callback) {
   console.log("Crawl insights for: " + text);
-  return callback([['ipad', 10], ['iphone', 30]]);
+  request("http://suggestqueries.google.com/complete/search?output=toolbar&hl=en&q=" + encodeURIComponent(text) + "%20+", function(error, response, body) {
+    var json = JSON.parse(xml2json.toJson(body)),
+    values = [],
+    renforcedData = [],
+    k = 0;
+    
+    for(var i in json.toplevel.CompleteSuggestion) {
+      
+      if(typeof json.toplevel.CompleteSuggestion[i].num_queries !== "undefined") {
+        values.push(json.toplevel.CompleteSuggestion[i].num_queries.int);
+        renforcedData.push([json.toplevel.CompleteSuggestion[i].suggestion.data, json.toplevel.CompleteSuggestion[i].num_queries.int]);
+        k++;
+      }
+      
+      if(k === 5) {
+        break;
+      }
+    }
+
+    var min = Math.min.apply(null, values),
+    max = Math.max.apply(null, values);
+
+    values = values.map(function(val) {
+      return (val - min) /  (max - min);
+    });
+
+    for(var i in renforcedData) {
+      renforcedData[i][1] = Math.round(values[i]*70);
+    }
+
+    callback(renforcedData);
+  });
 };
 
 crawlTweets = function(text, callback) {
   console.log("Crawl tweets for: " + text);
-  return twit.search(text, function(results) {
+  return twit.search(text, {rpp: 40}, function(results) {
     return callback(results.results);
   });
 };
