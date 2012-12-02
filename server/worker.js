@@ -23,6 +23,7 @@ redisClient = redis.createClient();
 
 var tweetExist = require('../lib/tweetExist');
 var userExist = require('../lib/userExist');
+var insightExist = require('../lib/insightExist');
 
 twit = new Twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -93,12 +94,25 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
               decRequest(job.data.requestId, 1, function() {
                 incRequest(job.data.requestId, insights.length, function() {
                   return insights.forEach(function(insight) {
-                    return createNode({
-                      type: 'text',
-                      text: insight[0]
-                    }, job.data.depth + 1, job.data.requestId, job.data.parentNodeId, function(err, insightNode) {
-                      return node.createRelationshipTo(insightNode, 'insight', {
+                    insightExist(insight[0], function(insightNode) {
+                      node.createRelationshipTo(insightNode, 'insight', {
                         weight: insight[1]
+                      });
+                      jobs.create('expand:node', {
+                        requestId: job.data.requestId,
+                        nodeId: insightNode.id,
+                        depth: job.data.depth + 1,
+                        parentNodeId : job.data.parentNodeId
+                        }).save();
+                      return insightNode;
+                    }, function() {
+                      return createNode({
+                        type: 'text',
+                        text: insight[0]
+                      }, job.data.depth + 1, job.data.requestId, job.data.parentNodeId, function(err, insightNode) {
+                        return node.createRelationshipTo(insightNode, 'insight', {
+                          weight: insight[1]
+                        });
                       });
                     });
                   });
@@ -133,7 +147,7 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
                         node.createRelationshipTo(tweetNode, 'tweet');
 
                         // return existing node if tweet is already in the database
-                        userExist(tweet.from_user_name, function(userNode) {
+                        userExist(tweet.from_user, function(userNode) {
                           tweetNode.createRelationshipTo(userNode, 'author');
                           jobs.create('expand:node', {
                             requestId: job.data.requestId,
@@ -145,7 +159,8 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
                         }, function () {
                           return createNode({
                             type: 'user',
-                            name: tweet.from_user_name
+                            name: tweet.from_user_name,
+                            user: tweet.from_user
                           }, job.data.depth + 1, job.data.requestId, job.data.parentNodeId, function(err, userNode) {
                             return tweetNode.createRelationshipTo(userNode, 'author');
                           });
@@ -161,31 +176,18 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
           end = false;
         }
 
-        if(end) {
-          decRequest(job.data.requestId, 1, function() {
-            getCounter(job.data.requestId, function(err, counter) {
-
-              console.log(counter);
-
-              if (counter <= 0) {
-                console.log("FINI");
-                request.post("http://localhost:3001/finish-request").form({id: job.data.requestId, parentNodeId: job.data.parentNodeId});
-              }
-            });
-          });
-        }
-
         return done();
       }
     });
   });
 
-  var requestT = function(text, requestId) {
+  var requestT = function(text, requestId, callback) {
     incRequest(requestId, 2, function() {
       return createNode({
         type: 'text',
         text: text
       }, 0, requestId, null, function(err, node) {
+        callback(node);
         return jobs.create('expand:node:text', {
           requestId: requestId,
           nodeId: node.id,
@@ -198,6 +200,11 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
 
     jobs.process('new:request', function(job, done) {
       console.log("new request");
-      requestT(job.data.text, job.data.requestId);
+      requestT(job.data.text, job.data.requestId, function(node) {
+        setTimeout(function() {
+          request.post("http://localhost:3001/finish-request").form({id: job.data.requestId, parentNodeId: node.id});
+        }, 7000);
+      });
+      
       return done();
     });

@@ -36,6 +36,7 @@ var router = function(app) {
     	COUNT(DISTINCT tweet.text) as tweetCount \
     ORDER BY userScore DESC';
     
+    console.log(query);
     db.query(query, {}, function(err, results) {
       workerRequest.res.send(results);
     });
