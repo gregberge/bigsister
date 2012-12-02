@@ -15,7 +15,7 @@ var router = function(app) {
   app.get("/user", function(req, res) {
     var query = 'START author=node(*) \
     MATCH author<-[:author]-tweet \
-    WHERE has(author.name) AND author.name = {user} \
+    WHERE has(author.user) AND author.user = {user} \
     RETURN DISTINCT author.name as name, author.user as user, COLLECT(tweet.text) as tweets';
 
     var params = {
