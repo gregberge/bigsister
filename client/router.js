@@ -20,6 +20,10 @@ function(Backbone){
       "results": {
         name: "results",
         view: "results"
+      },
+      "user": {
+        name: "user",
+        view: "user"
       }
     },
 

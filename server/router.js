@@ -1,6 +1,6 @@
-var WorkerRequest = require("./worker-request").WorkerRequest,
 neo4j = require('neo4j'),
 db = new neo4j.GraphDatabase('http://localhost:7474');
+var jsonxml = require('jsontoxml');
 
 var router = function(app) {
   
@@ -13,14 +13,38 @@ var router = function(app) {
   });
   
   app.get("/users", function(req, res) {
-    var workerRequest = new WorkerRequest();
+	  console.log(req.query.search);
+	
+    var query = 'START root=node(*) \
+		MATCH p=root-[ins:insight|tweet*..2]->tweet-[:author]->author \
+		WHERE \
+			has(root.type) \
+			AND root.type="text" \
+			AND (root.text=~{searchQuery}) \
+			AND tweet.type="tweet" \
+		RETURN \
+			author.name as name, \
+			SUM(COALESCE(HEAD(EXTRACT(i in ins : i.weight?)), 100)) as userScore, \
+		  COUNT(DISTINCT tweet) as matchCount, \
+			COUNT(DISTINCT tweet.text) as tweetCount \
+		ORDER BY userScore DESC';
+    
+		var params = {
+			searchQuery: ".*" + req.query.search + ".*"
+		};
+
+    db.query(query, params, function(err, results) {
+			res.send(results)
+    });
+
+	  /*var workerRequest = new WorkerRequest();
     workerRequest.res = res;
     workerRequest.request(req.query.search, function() {
       workers[workerRequest.id] = workerRequest;
-    });
+    });*/
   });
   
-  app.post("/finish-request", function(req, res) {
+  /*app.post("/finish-request", function(req, res) {
     
     var workerRequest = workers[req.body.id];
     
@@ -39,6 +63,23 @@ var router = function(app) {
       workerRequest.res.send(results);
     });
     
+  });*/
+
+	app.get("/user", function(req, res) {
+	  console.log(req.query.user);
+	
+    var query = 'START author=node(*) \
+		MATCH author<-[:author]-tweet \
+		WHERE has(author.name) AND author.name = {user} \
+		RETURN DISTINCT author.name, tweet.text';
+    
+		var params = {
+			user: req.query.user
+		};
+
+    db.query(query, params, function(err, results) {
+			res.send(results)
+    });
   });
 };
 
