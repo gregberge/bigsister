@@ -1,5 +1,5 @@
-define(["lib/views/page", "text!templates/pages/results.html", "views/elements/result-list"],
-function(PageView, template, ResultListView) {
+define(["lib/views/page", "text!templates/pages/results.html", "views/elements/result-list", "collections/users"],
+function(PageView, template, ResultListView, UserCollection) {
   "use strict";
   
   var View = PageView.extend({
@@ -7,7 +7,12 @@ function(PageView, template, ResultListView) {
     
     initialize: function() {
       PageView.prototype.initialize.call(this);
-      this.resultListView = new ResultListView();
+      
+      this.users = new UserCollection();
+      this.users.on("reset", this.render, this);
+      this.users.fetch({data: this.options});
+      
+      this.resultListView = new ResultListView({users: this.users});
     },
     
     render: function() {

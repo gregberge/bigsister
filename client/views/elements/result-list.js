@@ -7,9 +7,10 @@ function(TemplateView, template, UserCollection) {
 
     initialize: function() {
       TemplateView.prototype.initialize.call(this);
-      this.users = new UserCollection();
-      this.users.on("reset", this.render, this);
-    }
+    },
+    render: function() {
+      TemplateView.prototype.render.call(this);
+    },
   });
 
   return View;

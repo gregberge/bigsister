@@ -10,7 +10,8 @@
     "neo4j": "*",
     "kue": "*",
     "twitter": "*",
-    "redis": "*"
+    "redis": "*",
+    "request": "*"
   },
   "devDependencies": {
     

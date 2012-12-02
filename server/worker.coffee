@@ -23,34 +23,66 @@ crawlTweets = (text, callback) ->
   console.log "Crawl tweets for: #{text}"
   twit.search text, (results) ->
     callback(results.results)
+    
+incRequest = (requestId, inc=1) ->
+  redisClient.incrby "request:counter:#{requestId}", inc
+  
+decRequest = (requestId, inc=1) ->
+  redisClient.decrby "request:counter:#{requestId}", inc
+  
+createNode = (data, depth, requestId, callback) ->
+  db.createNode(data).save (err, node) ->
+    jobs.create('expand:node',
+      requestId: requestId
+      nodeId: node.id
+      depth: depth + 1
+      ).save()
+    callback(err, node)
 
 # expand text
-jobs.process 'expand:node:text', (job, done) ->
+jobs.process 'expand:node', (job, done) ->
   db.getNodeById job.data.nodeId, (err, node) ->
     unless err?
-      # insights
+    
       if job.data.depth == 0
-        crawlInsights node.data.text, (insights) ->
-          insights.forEach (insight) ->
-            db.createNode(type: 'text', text: insight[0]).save (err, insightNode) ->
-              node.createRelationshipTo insightNode, 'insight', weight: insight[1]
-              jobs.create('expand:node:text',
-                requestId: job.data.requestId
-                nodeId: insightNode.id
-                depth: job.data.depth + 1
-                ).save()
-      # tweets
-      crawlTweets node.data.text, (tweets) ->
-        tweets.forEach (tweet) ->
-          db.createNode(type: 'tweet', text: tweet.text, twitter_id: tweet.id).save (err, tweetNode) ->
-            node.createRelationshipTo tweetNode, 'tweet'
-            db.createNode(type: 'user', name: tweet.from_user_name).save (err, userNode) ->
-              console.log "#{userNode.id} - #{userNode.data.name}"
-              tweetNode.createRelationshipTo userNode, 'author'
+        incRequest job.data.requestId
+    
+      if node.data.type == 'text'
+        
+        # insights
+        if job.data.depth == 0
+          crawlInsights node.data.text, (insights) ->
+          
+            decRequest job.data.requestId # -1
+            incRequest job.data.requestId, insights.length # +x
+          
+            insights.forEach (insight) ->
+              createNode(type: 'text', text: insight[0], (job.data.depth + 1), job.data.requestId, (err, insightNode) ->
+                node.createRelationshipTo insightNode, 'insight', weight: insight[1]
+              )
+        # tweets
+        crawlTweets node.data.text, (tweets) ->
+        
+          decRequest job.data.requestId # -1
+          incRequest job.data.requestId, tweets.length # +x
+        
+          tweets.forEach (tweet) ->
+            createNode(type: 'tweet', text: tweet.text, twitter_id: tweet.id, (job.data.depth + 1), job.data.requestId, (err, tweetNode) ->
+              node.createRelationshipTo tweetNode, 'tweet'
+              createNode(type: 'user', name: tweet.from_user_name, (job.data.depth + 1), job.data.requestId, (err, userNode) ->
+                console.log "#{userNode.id} - #{userNode.data.name}"
+                tweetNode.createRelationshipTo userNode, 'author'
+              )
+            )
+      
+      counter = decRequest job.data.requestId # -1
+      console.log(counter)
+      if counter == 0
+        console.log "FINI"
       done()
 
-request = (text) ->
-  requestId = redisClient.incr('next_request_id')
+
+request = (text, requestId=nil) ->
   db.createNode(type: 'text', text: text).save (err, node) ->
     jobs.create('expand:node:text',
       requestId: requestId
@@ -58,4 +90,7 @@ request = (text) ->
       depth: 0
       ).save()
 
-request 'apple'
+jobs.process 'new:request', (job, done) ->
+  console.log "new request"
+  request job.data.text, job.data.requestId
+  done()

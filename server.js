@@ -3,7 +3,7 @@ app = express(),
 cons = require("consolidate"),
 router = require("./server/router");
 
-var APP_PORT = 3000;
+var APP_PORT = 3001;
 
 app.configure(function() {
   app.engine("html", cons.hogan);
