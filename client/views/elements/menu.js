@@ -7,6 +7,11 @@ function(TemplateView, template, router) {
     
     page: "home",
     
+    events: {
+      "submit .search-form": "search",
+      "click .search-form img": "search"
+    },
+    
     initialize: function() {
       TemplateView.prototype.initialize.call(this);
       router.on("all", this.routeChange, this);
@@ -24,6 +29,11 @@ function(TemplateView, template, router) {
         this.$el.removeClass("search-enabled");
       }
       
+    },
+    
+    search: function() {
+      router.navigate("results/" + this.$(".search-form input").val(), {trigger: true});
+      return false;
     },
     
     routeChange: function(route) {

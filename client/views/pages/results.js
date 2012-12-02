@@ -1,5 +1,5 @@
-define(["lib/views/page", "text!templates/pages/results.html", "views/elements/result-list", "collections/users", "models/user"],
-function(PageView, template, ResultListView, UserCollection, UserModel) {
+define(["lib/views/page", "text!templates/pages/results.html", "views/elements/result-list", "collections/users", "models/user", "jquery"],
+function(PageView, template, ResultListView, UserCollection, UserModel, $) {
   "use strict";
   
   var View = PageView.extend({
@@ -37,6 +37,8 @@ function(PageView, template, ResultListView, UserCollection, UserModel) {
     load: function() {
       if(typeof this.search === "undefined" || this.search !== this.urlParams[0]) {
         this.search = this.urlParams[0];
+        $("[name=search]").val(this.search);
+        this.users.reset();
         this.users.fetch({data: {search: this.urlParams[0]}});
       }
     }
