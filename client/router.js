@@ -17,11 +17,11 @@ function(Backbone){
         name: "contact",
         view: "contact"
       },
-      "results": {
+      "results/:query": {
         name: "results",
         view: "results"
       },
-      "user": {
+      "user/:name": {
         name: "user",
         view: "user"
       }
@@ -40,7 +40,7 @@ function(Backbone){
         (
           function(routeConfig) {
             self.route(route, routeConfig.name, function() {
-              self.routeHandler(routeConfig);
+              self.routeHandler(routeConfig, arguments);
             });
           }
           (routeConfig)
@@ -48,14 +48,15 @@ function(Backbone){
       }
     },
 
-    routeHandler: function(route) {
+    routeHandler: function(route, params) {
       var self = this;
-
+			
       require(["views/pages/" + route.view], function(View) {
         if(typeof self.views[route.view] === "undefined") {
           self.views[route.view] = new View();
         }
         
+				self.views[route.view].urlParams = params
         self.views[route.view].render();
       });
     },

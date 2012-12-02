@@ -1,5 +1,5 @@
-define(["lib/views/page", "text!templates/pages/user.html", "models/user"],
-function(PageView, template, UserModel) {
+define(["lib/views/page", "text!templates/pages/user.html", "models/user", "router"],
+function(PageView, template, UserModel, router) {
   "use strict";
   
   var View = PageView.extend({
@@ -7,15 +7,17 @@ function(PageView, template, UserModel) {
     
     initialize: function() {
       PageView.prototype.initialize.call(this);
-			console.log(this);
-			console.log("this has been initialised")
+			this.user = new UserModel();
+			this.user.on("change", this.render, this);
     },
 
 		render: function (){
 			PageView.prototype.render.call(this);
-			alert("surrender!");
-			console.log(user);
+			console.log(this.options.urlParams);
+      this.user.fetch({data: {user: this.urlParams[0]}});
+			console.log(this.user);
 		}
+
   });
 
   return View;

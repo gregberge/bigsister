@@ -1,1 +1,44 @@
-{{ user }}
+<!-- Main hero unit for a primary marketing message or call to action -->
+
+      <!-- Example row of columns -->
+
+      <div class="row">
+        <div class="span12">
+          <img src="assets/img/graphe.png">
+        </div>
+     </div>
+     <hr>
+<!--  style="padding-bottom:10px; border-bottom: 1px solid rgba(192, 192, 192, 0.30);"  -->
+     <div class="row">
+      <div class="span7">
+        <h3><img src="assets/img/claire-b.png" > {{user.attributes.name}} <small>Tweets: {{user.attributes.tweets.length}}</small></h3>
+        <a class="btn btn-primary"><i class="icon-forward icon-white"></i> Suivre</a> <a class="btn btn-info"><i class="icon-envelope icon-white"></i> Contacter</a> <a class="btn btn-success"><i class="icon-star icon-white"></i> Favoris</a>
+        <div class="span6 offset1" style>
+			<hr>
+			{{#user.attributes.tweets}}
+				
+				"<i>{{.}}</i>"
+				<hr>
+			{{/user.attributes.tweets}}
+    </div>
+     </div>
+
+     <div class="span3 offset1">
+      <h3>Relevant Network</h3>
+      <img src="assets/img/network-perso.png">
+      <h3>Profile</h3> 
+        <ul>
+          <li>
+            Responsable marketing chez L'Oréal
+          </li>
+           <li>
+            Audencia
+          </li>
+          
+            <a href="http://www.linkedin.com/" target="_blank">More about Claire on LinkedIn</a>
+          
+        </ul>
+
+      
+     </div>
+   </div>

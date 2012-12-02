@@ -65,8 +65,8 @@ var router = function(app) {
     
   });*/
 
-	app.get("/user", function(req, res) {
-	  console.log(req.query.user);
+	app.post("/user", function(req, res) {
+	  console.log(req.body.user);
 	
     var query = 'START author=node(*) \
 		MATCH author<-[:author]-tweet \
@@ -74,13 +74,46 @@ var router = function(app) {
 		RETURN DISTINCT author.name, tweet.text';
     
 		var params = {
+			user: req.body.user
+		};
+
+    db.query(query, params, function(err, results) {
+			var object = {};
+			for(var r in results){
+				object[r] = results[r]
+			}
+			var xml = jsonxml(object);
+
+			//console.log(xml);
+			res.send(results)
+    });
+  });
+
+	app.get("/user", function(req, res) {
+	  console.log(req.query.user);
+	
+    var query = 'START author=node(*) \
+		MATCH author<-[:author]-tweet \
+		WHERE has(author.name) AND author.name = {user} \
+		RETURN DISTINCT author.name as name, COLLECT(tweet.text) as tweets';
+    
+		var params = {
 			user: req.query.user
 		};
 
     db.query(query, params, function(err, results) {
-			res.send(results)
+			var object = {};
+			for(var r in results){
+				object[r] = results[r]
+			}
+			var xml = jsonxml(object);
+
+			//console.log(xml);
+			res.send(results[0])
     });
   });
+
+	app.get("/graph", function(req, res))
 };
 
 exports = module.exports = router;
