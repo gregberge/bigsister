@@ -113,7 +113,57 @@ var router = function(app) {
     });
   });
 
-	app.get("/graph", function(req, res))
+	app.get("/graph", function(req, res){
+		console.log(req.query.user);
+		
+		var type = req.query.type;
+		var value = req.query.value;
+		
+		var query = "";
+		
+		if(type == "term"){
+			query = 'START author=node(*) \
+			MATCH author<-[:author]-tweet \
+			WHERE has(author.name) AND author.name = {user} \
+			RETURN DISTINCT author.name as name, COLLECT(tweet.text) as tweets';
+		} else if(type == "user"){
+			query = 'START author=node(*) \
+			MATCH p=author-[*1..4]-tweet-[:author]->level1 \
+			WHERE has(author.name) AND author.name = {user} \
+			RETURN author.name, level1.name';
+		}
+		
+		var params = {
+			user: req.query.value
+		};
+
+    db.query(query, params, function(err, results) {
+			var response = {};
+			response["nodes"] = [];
+			var rootUser = {
+				"name": results[0]["author.name"],
+				"group": 1
+			}
+			response["nodes"].push(rootUser);
+			response["links"] = [];
+			for(var r in results){
+				var result = results[r]
+				var level1 = {
+					"name": result["level1.name"],
+					"group": 1+Math.floor(Math.random()*8)
+				}
+				var link = {
+					"source": 0,
+					"target": parseInt(r),
+					"value": 1+Math.floor(Math.random()*10)
+				}
+				response["links"].push(link);
+				response["nodes"].push(level1);
+			}
+			res.send(response)
+    });
+		
+	})
 };
 
 exports = module.exports = router;
