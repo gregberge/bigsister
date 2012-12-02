@@ -19,9 +19,10 @@ redis = require('redis');
 
 var request = require("request");
 
-var xml2json = require("xml2json");
-
 redisClient = redis.createClient();
+
+var tweetExist = require('../lib/tweetExist');
+var userExist = require('../lib/userExist');
 
 twit = new Twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -32,43 +33,12 @@ twit = new Twitter({
 
 crawlInsights = function(text, callback) {
   console.log("Crawl insights for: " + text);
-  request("http://suggestqueries.google.com/complete/search?output=toolbar&hl=en&q=" + encodeURIComponent(text) + "%20+", function(error, response, body) {
-    var json = JSON.parse(xml2json.toJson(body)),
-    values = [],
-    renforcedData = [],
-    k = 0;
-    
-    for(var i in json.toplevel.CompleteSuggestion) {
-      
-      if(typeof json.toplevel.CompleteSuggestion[i].num_queries !== "undefined") {
-        values.push(json.toplevel.CompleteSuggestion[i].num_queries.int);
-        renforcedData.push([json.toplevel.CompleteSuggestion[i].suggestion.data, json.toplevel.CompleteSuggestion[i].num_queries.int]);
-        k++;
-      }
-      
-      if(k === 5) {
-        break;
-      }
-    }
-
-    var min = Math.min.apply(null, values),
-    max = Math.max.apply(null, values);
-
-    values = values.map(function(val) {
-      return (val - min) /  (max - min);
-    });
-
-    for(var i in renforcedData) {
-      renforcedData[i][1] = Math.round(values[i]*70);
-    }
-
-    callback(renforcedData);
-  });
+  return callback([['ipad', 10], ['iphone', 30]]);
 };
 
 crawlTweets = function(text, callback) {
   console.log("Crawl tweets for: " + text);
-  return twit.search(text, {rpp: 40}, function(results) {
+  return twit.search(text, function(results) {
     return callback(results.results);
   });
 };
@@ -106,7 +76,7 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
       requestId: requestId,
       nodeId: node.id,
       depth: depth + 1,
-      parentNodeId : parentNodeId,
+      parentNodeId : parentNodeId
       }).save();
       return callback(err, node);
     });
@@ -114,7 +84,7 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
 
   jobs.process('expand:node', function(job, done) {
     return db.getNodeById(job.data.nodeId, function(err, node) {
-      if (err == null) {
+      if (err === null) {
         var end = true;
 
         if (node.data.type === 'text') {
@@ -143,19 +113,43 @@ createNode = function(data, depth, requestId, parentNodeId, callback) {
               incRequest(job.data.requestId, tweets.length, function() {
                 incRequest(job.data.requestId, tweets.length, function() {
                   return tweets.forEach(function(tweet) {
-                    return createNode({
-                      type: 'tweet',
-                      text: tweet.text,
-                      twitter_id: tweet.id
-                    }, job.data.depth + 1, job.data.requestId, job.data.parentNodeId, function(err, tweetNode) {
+
+                    // return existing node if tweet is already in the database
+                    tweetExist(tweet.id, function(tweetNode) {
                       node.createRelationshipTo(tweetNode, 'tweet');
+                      jobs.create('expand:node', {
+                        requestId: job.data.requestId,
+                        nodeId: tweetNode.id,
+                        depth: job.data.depth + 1,
+                        parentNodeId : job.data.parentNodeId
+                        }).save();
+                      return tweetNode;
+                    }, function() {
                       return createNode({
-                        type: 'user',
-                        name: tweet.from_user_name,
-                        user: tweet.from_user
-                      }, job.data.depth + 1, job.data.requestId, job.data.parentNodeId, function(err, userNode) {
-                        console.log("" + userNode.id + " - " + userNode.data.name);
-                        return tweetNode.createRelationshipTo(userNode, 'author');
+                        type: 'tweet',
+                        text: tweet.text,
+                        twitter_id: tweet.id
+                      }, job.data.depth + 1, job.data.requestId, job.data.parentNodeId, function(err, tweetNode) {
+                        node.createRelationshipTo(tweetNode, 'tweet');
+
+                        // return existing node if tweet is already in the database
+                        userExist(tweet.from_user_name, function(userNode) {
+                          tweetNode.createRelationshipTo(userNode, 'author');
+                          jobs.create('expand:node', {
+                            requestId: job.data.requestId,
+                            nodeId: userNode.id,
+                            depth: job.data.depth + 1,
+                            parentNodeId : job.data.parentNodeId
+                            }).save();
+                          return userNode;
+                        }, function () {
+                          return createNode({
+                            type: 'user',
+                            name: tweet.from_user_name
+                          }, job.data.depth + 1, job.data.requestId, job.data.parentNodeId, function(err, userNode) {
+                            return tweetNode.createRelationshipTo(userNode, 'author');
+                          });
+                        });
                       });
                     });
                   });
