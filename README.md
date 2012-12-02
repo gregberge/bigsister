@@ -8,7 +8,7 @@ BigSister.io is a new affordable influence tool for businesses. Launching a new 
 ## Installation
 
 * install [Node.js](http://www.nodejs.org/)
-* install [bower](https://github.com/twitter/bower)
+* install [Bower](https://github.com/twitter/bower)
 * install dependencies : `make install`
 
 ## Start server
