@@ -1,5 +1,5 @@
-define(["lib/views/page", "text!templates/pages/home.html", "views/pages/results"],
-function(PageView, template, ResultView) {
+define(["lib/views/page", "text!templates/pages/home.html", "views/pages/results", "router"],
+function(PageView, template, ResultView, router) {
   "use strict";
   
   var View = PageView.extend({
@@ -10,12 +10,7 @@ function(PageView, template, ResultView) {
     },
     
     search: function() {
-      var resultView = new ResultView({
-        search: this.$(".search-form input").val()
-      });
-      
-      resultView.render();
-      
+      router.navigate("results/" + this.$(".search-form input").val(), {trigger: true});
       return false;
     }
   });

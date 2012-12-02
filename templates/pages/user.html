@@ -10,8 +10,8 @@
 <!--  style="padding-bottom:10px; border-bottom: 1px solid rgba(192, 192, 192, 0.30);"  -->
      <div class="row">
       <div class="span7">
-        <h3><img src="assets/img/claire-b.png" > {{user.attributes.name}} <small>Tweets: {{user.attributes.tweets.length}}</small></h3>
-        <a class="btn btn-primary"><i class="icon-forward icon-white"></i> Suivre</a> <a class="btn btn-info"><i class="icon-envelope icon-white"></i> Contacter</a> <a class="btn btn-success"><i class="icon-star icon-white"></i> Favoris</a>
+        <h3><img src="http://api.twitter.com/1/users/profile_image?screen_name={{user.attributes.user}}&size=bigger" > {{user.attributes.name}} <small>Tweets: {{user.attributes.tweets.length}}</small></h3>
+        <a class="btn btn-primary"><i class="icon-forward icon-white"></i> Follow</a> <a class="btn btn-info"><i class="icon-envelope icon-white"></i> Contact</a> <a class="btn btn-success"><i class="icon-star icon-white"></i> Star</a>
         <div class="span6 offset1" style>
 			<hr>
 			{{#user.attributes.tweets}}

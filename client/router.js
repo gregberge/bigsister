@@ -56,7 +56,12 @@ function(Backbone){
           self.views[route.view] = new View();
         }
         
-				self.views[route.view].urlParams = params
+				self.views[route.view].urlParams = params;
+				
+				if(typeof self.views[route.view].load !== "undefined") {
+				  typeof self.views[route.view].load();
+				}
+				
         self.views[route.view].render();
       });
     },
