@@ -64,7 +64,6 @@ var router = function(app) {
 
 
 	app.get("/graph", function(req, res){
-		console.log(req.query.user);
 		
 		var type = req.query.type;
 		var value = req.query.value;
@@ -74,12 +73,12 @@ var router = function(app) {
 		if(type == "term"){
 			query = 'START author=node(*) \
 			MATCH author<-[:author]-tweet \
-			WHERE has(author.name) AND author.name = {user} \
+			WHERE has(author.user) AND author.user = {user} \
 			RETURN DISTINCT author.name as name, COLLECT(tweet.text) as tweets';
 		} else if(type == "user"){
 			query = 'START author=node(*) \
 			MATCH p=author-[*1..4]-tweet-[:author]->level1 \
-			WHERE has(author.name) AND author.name = {user} \
+			WHERE has(author.user) AND author.user = {user} \
 			RETURN author.name, level1.name';
 		}
 		
@@ -90,6 +89,11 @@ var router = function(app) {
     db.query(query, params, function(err, results) {
 			var response = {};
 			response["nodes"] = [];
+			
+			if(!results) {
+			  res.send([]);
+			  return;
+			}
 			var rootUser = {
 				"name": results[0]["author.name"],
 				"group": 1

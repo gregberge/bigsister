@@ -55,6 +55,7 @@
 
 </style>
 <script>
+(function(){
 var width = 270,
     height = 100;
 
@@ -69,9 +70,9 @@ var svg = d3.select(".graph-target").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var user = "{{user.attributes.name}}"
+var user = "{{user.attributes.user}}";
 if(user == ""){
-	user = "Gill"
+	return ;
 }
 
 d3.json("http://localhost:3001/graph?type=user&value=" + user, function(error, graph) {
@@ -108,9 +109,6 @@ d3.json("http://localhost:3001/graph?type=user&value=" + user, function(error, g
   });
 });
 
-</script>
-
-<script>
 var width2 = 900,
     height2 = 250;
 
@@ -159,4 +157,5 @@ d3.json("/assets/js/miserables.json", function(error, graph) {
   });
 });
 
+})();
 </script>
