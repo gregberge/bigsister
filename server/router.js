@@ -30,6 +30,7 @@ var router = function(app) {
     	tweet.type="tweet" \
     RETURN \
     	author.name as name, \
+    	author.user as user, \
     	SUM(COALESCE(HEAD(EXTRACT(i in ins : i.weight?)), 100)) as userScore, \
         COUNT(DISTINCT tweet) as matchCount, \
     	COUNT(DISTINCT tweet.text) as tweetCount \

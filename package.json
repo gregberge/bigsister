@@ -11,7 +11,8 @@
     "kue": "*",
     "twitter": "*",
     "redis": "*",
-    "request": "*"
+    "request": "*",
+    "xml2json": "*"
   },
   "devDependencies": {
     
